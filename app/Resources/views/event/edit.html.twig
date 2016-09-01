@@ -1,4 +1,6 @@
-{% extends '::base.html.twig' %}
+{% extends 'base.html.twig' %}
+
+{% block title "Events " %}
 
 {% block body %}
     <section class="event-show event-edit">
@@ -40,12 +42,17 @@
                     </dd>
                 </dl>
 
+                {{ form_widget(edit_form) }}
+                
                 {# the closing </form> tag #}
                 {{ form_end(edit_form) }}
 
-                {{ form(update_form) }}
                 {{ form(delete_form) }}
+
             </section>
         </article>
     </section>
+
+
+
 {% endblock %}

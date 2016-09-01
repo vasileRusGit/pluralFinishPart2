@@ -27,7 +27,7 @@ class EventController extends Controller {
     }
 
     /**
-     * Creates a new Event entity.
+     * Creates a new Event event.
      *
      */
     public function newAction(Request $request) {
@@ -51,86 +51,131 @@ class EventController extends Controller {
      * Finds and displays a Event entity.
      *
      */
-    public function showAction(Event $event) {
-        $this->enforceUserSecurity();
+    public function showAction($id) {
+        $em = $this->getDoctrine()->getManager();
 
-        $deleteForm = $this->createDeleteForm($event);
+        $event = $em->getRepository('EventBundle:Event')->find($id);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Unable to find Event entity.');
+        }
+
+        $deleteForm = $this->createDeleteForm($id);
+
         return $this->render('event/show.html.twig', array(
                     'event' => $event,
-                    'delete_form' => $deleteForm->createView(),
-        ));
+                    'delete_form' => $deleteForm->createView(),));
     }
 
     /**
-     * Displays a form to edit an existing Event entity.
+     * Displays a form to edit an existing Event event.
      *
      */
-    public function editAction(Request $request, Event $event) {
+    public function editAction($id) {
         $this->enforceUserSecurity();
+        $em = $this->getDoctrine()->getManager();
 
-        $deleteForm = $this->createDeleteForm($event);
-        $updateForm = $this->createUpdateForm($event);
-        $editForm = $this->createForm(new EventType(), $event);
-        $editForm->handleRequest($request);
-        if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($event);
-            $em->flush();
-            return $this->redirectToRoute('event_edit', array('id' => $event->getId()));
+        $event = $em->getRepository('EventBundle:Event')->find($id);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Unable to find Event event.');
         }
+
+        $editForm = $this->createEditForm($event);
+        $deleteForm = $this->createDeleteForm($id);
+
         return $this->render('event/edit.html.twig', array(
                     'event' => $event,
                     'edit_form' => $editForm->createView(),
                     'delete_form' => $deleteForm->createView(),
-                    'update_form' => $updateForm->createView(),
         ));
     }
 
     /**
-     * Deletes a Event entity.
+     * Edits an existing Event entity.
      *
      */
-    public function deleteAction(Request $request, Event $event) {
-        $this->enforceAdminUserSecurity();
+    public function updateAction(Request $request, $id) {
+        $this->enforceUserSecurity();
+        $em = $this->getDoctrine()->getManager();
 
-        $form = $this->createDeleteForm($event);
+        $entity = $em->getRepository('EventBundle:Event')->find($id);
+
+        if (!$entity) {
+            throw $this->createNotFoundException('Unable to find Event entity.');
+        }
+
+        $deleteForm = $this->createDeleteForm($id);
+        $editForm = $this->createEditForm($entity);
+        $editForm->handleRequest($request);
+
+        if ($editForm->isValid()) {
+            $em->flush();
+
+            return $this->redirect($this->generateUrl('event_edit', array('id' => $id)));
+        }
+
+        return $this->render('EventBundle:Event:edit.html.twig', array(
+                    'entity' => $entity,
+                    'edit_form' => $editForm->createView(),
+                    'delete_form' => $deleteForm->createView(),
+        ));
+    }
+
+    /**
+     * Creates a form to edit a Event event.
+     *
+     * @param Event $event The event
+     *
+     * @return \Symfony\Component\Form\Form The form
+     */
+    private function createEditForm(Event $event) {
+        $form = $this->createForm(new EventType(), $event, array(
+            'action' => $this->generateUrl('event_update', array('id' => $event->getId())),
+            'method' => 'PUT',
+        ));
+
+        $form->add('submit', 'submit', array('label' => 'Update'));
+
+        return $form;
+    }
+
+    /**
+     * Deletes a Event event.
+     *
+     */
+    public function deleteAction(Request $request, $id) {
+        $this->enforceUserSecurity();
+        $form = $this->createDeleteForm($id);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
+
+        if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager();
+            $event = $em->getRepository('EventBundle:Event')->find($id);
+
+            if (!$event) {
+                throw $this->createNotFoundException('Unable to find Event event.');
+            }
+
             $em->remove($event);
             $em->flush();
         }
-        return $this->redirectToRoute('event_index');
+
+        return $this->redirect($this->generateUrl('event_index'));
     }
 
     /**
-     * Creates a form to delete a Event entity.
+     * Creates a form to delete a Event event by id.
      *
-     * @param Event $event The Event entity
-     *
-     * @return \Symfony\Component\Form\Form The form
-     */
-    private function createUpdateForm(Event $event) {
-        return $this->createFormBuilder()
-                        ->setAction($this->generateUrl('event_edit', array('id' => $event->getId())))
-                        ->add('submit', 'submit', array('label' => 'Update'))
-                        ->setMethod('POST')
-                        ->getForm()
-        ;
-    }
-
-    /**
-     * Creates a form to delete a Event entity.
-     *
-     * @param Event $event The Event entity
+     * @param mixed $id The event id
      *
      * @return \Symfony\Component\Form\Form The form
      */
-    private function createDeleteForm(Event $event) {
+    private function createDeleteForm($id) {
         return $this->createFormBuilder()
-                        ->setAction($this->generateUrl('event_delete', array('id' => $event->getId())))
-                        ->add('submit', 'submit', array('label' => 'Delete'))
+                        ->setAction($this->generateUrl('event_delete', array('id' => $id)))
                         ->setMethod('DELETE')
+                        ->add('submit', 'submit', array('label' => 'Delete'))
                         ->getForm()
         ;
     }

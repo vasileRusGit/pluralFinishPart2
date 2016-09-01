@@ -18,13 +18,14 @@ event_edit:
     defaults: { _controller: "EventBundle:Event:edit" }
     methods:  [GET, POST]
 
+event_update:
+    pattern:  /{id}/update
+    defaults: { _controller: "EventBundle:Event:update" }
+    requirements: { _method: post|put }
+
 event_delete:
     path:     /{id}/delete
     defaults: { _controller: "EventBundle:Event:delete" }
     methods:  DELETE
     
-event_update:
-    pattern:  /{id}/update
-    defaults: { _controller: "EventBundle:Event:update" }
-    requirements: { _method: post|put }
     
